@@ -1,0 +1,21 @@
+---
+- name: Install Overseerr snap
+  community.general.snap:
+    name: overseerr
+    state: present
+
+- name: proxy overseerr if nginx is installed
+  block:
+  - name: Configure NGINX for overseerr
+    ansible.builtin.copy:
+      src: nginx-overseerr.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+  when: ansible_facts.services['nginx.service'] is defined

@@ -1,0 +1,54 @@
+---
+- name: Add sabnzbd repository to apt
+  ansible.builtin.apt_repository:
+    repo: "ppa:jcfp/nobetas"
+    state: present
+    update_cache: true
+
+- name: Perform apt dist-upgrade
+  ansible.builtin.apt:
+    upgrade: dist
+    update_cache: true
+
+- name: Install sabnzbd
+  ansible.builtin.apt:
+    name: sabnzbdplus
+    state: latest
+
+- name: Set Plex as service username
+  ansible.builtin.lineinfile:
+      path: /etc/default/sabnzbdplus
+      regexp: "^USER=.*$"
+      line: "USER=plex"
+      mode: '0644'
+      owner: root
+      group: root
+  notify:
+  - Restart sabnzbdplus
+
+- name: broadcast sabnzbdplus on all ips
+  ansible.builtin.lineinfile:
+    path: /var/lib/plexmediaserver/.sabnzbd/sabnzbd.ini
+    regexp: ^host = .*$
+    line: host = 0.0.0.0"
+    mode: '0600'
+    owner: plex
+    group: plex
+  notify:
+  - Restart sabnzbdplus
+
+- name: proxy sabnzbd if nginx is installed
+  block:
+  - name: Configure NGINX for sabnzbd
+    ansible.builtin.copy:
+      src: nginx-sabnzbd.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+  when: ansible_facts.services['nginx.service'] is defined

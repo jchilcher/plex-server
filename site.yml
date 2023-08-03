@@ -1,0 +1,14 @@
+---
+- name: Install Plex server/*arr suite
+  hosts: all
+  gather_facts: true
+
+  roles:
+    - nginx
+    - plex
+    - sonarr
+    - radarr
+    - prowlarr
+    - overseerr
+    - transmission
+    - sabnzbd

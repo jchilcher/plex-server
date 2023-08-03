@@ -1,0 +1,44 @@
+---
+- name: add plex repo
+  ansible.builtin.shell: |
+    curl https://downloads.plex.tv/plex-keys/PlexSign.key | sudo apt-key add -
+    echo deb https://downloads.plex.tv/repo/deb public main | sudo tee /etc/apt/sources.list.d/plexmediaserver.list
+
+- name: install plex package
+  ansible.builtin.shell: |
+    apt update
+    apt install plexmediaserver
+
+- name: add plex user to media group
+  ansible.builtin.user:
+    name: plex
+    groups: media
+    append: true
+    state: present
+
+- name: create library folders in /opt/plex
+  ansible.builtin.file:
+    path: "item"
+    state: directory
+    owner: plex
+    group: media
+  loop:
+    - "/opt/plex/"
+    - "/opt/plex/shows"
+    - "/opt/plex/movies"
+
+- name: proxy plex if nginx is installed
+  block:
+  - name: Configure NGINX for plex
+    ansible.builtin.copy:
+      src: nginx-plex.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted
+  when: ansible_facts.services['nginx.service'] is defined

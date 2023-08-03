@@ -1,0 +1,34 @@
+---
+- name: Install Transmission
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - transmission-cli
+    - transmission-daemon
+    - transmission-common
+
+- name: disable rpc-whitelist
+  ansible.builtin.lineinfile:
+    path: /var/lib/radarr/config.xml
+    regexp: "^    \"rpc-whitelist-enabled\":.*$"
+    line: "    \"rpc-whitelist-enabled\": false,"
+
+- name: proxy transmission if nginx is installed
+  block:
+  - name: Configure NGINX for transmission
+    ansible.builtin.copy:
+      src: nginx-transmission.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: restart nginx and transmission
+    ansible.builtin.service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - nginx
+      - transmission-daemon
+  when: ansible_facts.services['nginx.service'] is defined

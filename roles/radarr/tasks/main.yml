@@ -1,0 +1,37 @@
+---
+- name: Copy installarr.sh to home directory
+  ansible.builtin.copy:
+    src: installarr.sh
+    dest: "/root/"
+    mode: '0744'
+
+- name: Run installarr.sh with responses
+  ansible.builtin.shell: "printf '3\nradarr\nmedia\n1\nY' | bash installarr.sh"
+
+- name: proxy radarr if nginx is installed
+  block:
+  - name: Configure NGINX for Radarr
+    ansible.builtin.copy:
+      src: nginx-radarr.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: Modify UrlBase in radarr config
+    ansible.builtin.lineinfile:
+      path: /var/lib/radarr/config.xml
+      regexp: "^  <UrlBase>.*$"
+      line: "  <UrlBase>/radarr</UrlBase>"
+      mode: '0644'
+      owner: radarr
+      group: media
+
+  - name: restart nginx and radarr
+    ansible.builtin.service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - nginx
+      - radarr
+  when: ansible_facts.services['nginx.service'] is defined

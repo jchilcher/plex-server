@@ -1,0 +1,70 @@
+---
+- name: Add Mono repository apt key
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+
+- name: Add Mono repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.mono-project.com/repo/ubuntu stable-focal main"
+    state: present
+    filename: mono-official-stable.list
+
+- name: Add MediaArea repository apt key
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: C5CDF62C7AE05CC847657390C10E11090EC0E438
+
+- name: Add MediaArea repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://mediaarea.net/repo/deb/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: mediaarea.list
+
+- name: Add Sonarr repository apt key
+  ansible.builtin.apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 2009837CBFFD68F45BC180471F4F90DE2A9B4BF8
+
+- name: Add Sonarr repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.sonarr.tv/ubuntu focal main"
+    state: present
+    filename: sonarr.list
+
+- name: Install Sonarr
+  ansible.builtin.package:
+    name: sonarr
+    state: present
+
+- name: Populate service facts
+  ansible.builtin.service_facts:
+
+- name: proxy sonarr if nginx is installed
+  block:
+  - name: Configure NGINX for Radarr
+    ansible.builtin.copy:
+      src: nginx-sonarr.conf
+      dest: /etc/nginx/conf.d/
+      mode: "0644"
+      owner: root
+      group: root
+
+  - name: Modify UrlBase in sonarr config
+    ansible.builtin.lineinfile:
+      path: /var/lib/sonarr/config.xml
+      regexp: "^  <UrlBase>.*$"
+      line: "  <UrlBase>/sonarr</UrlBase>"
+      create: true
+      mode: '0644'
+      owner: sonarr
+      group: media
+
+  - name: restart nginx and sonarr
+    ansible.builtin.service:
+      name: "{{ item }}"
+      state: restarted
+    with_items:
+      - nginx
+      - sonarr
+  when: ansible_facts.services['nginx.service'] is defined

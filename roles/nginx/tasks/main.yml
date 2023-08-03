@@ -1,0 +1,12 @@
+---
+- name: apt install nginx
+  become: true
+  ansible.builtin.package:
+    name: nginx
+    state: latest
+
+- name: remove default sites-enabled
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: true
