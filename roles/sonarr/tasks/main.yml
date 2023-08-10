@@ -37,15 +37,22 @@
     name: sonarr
     state: present
 
-- name: Populate service facts
+- name: add sonarr user to media group
+  ansible.builtin.user:
+    name: sonarr
+    groups: media
+    append: true
+    state: present
+
+- name: Get service facts
   ansible.builtin.service_facts:
 
 - name: proxy sonarr if nginx is installed
   block:
   - name: Configure NGINX for Radarr
     ansible.builtin.copy:
-      src: nginx-sonarr.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-sonarr.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root

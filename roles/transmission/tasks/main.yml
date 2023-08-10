@@ -8,27 +8,68 @@
     - transmission-daemon
     - transmission-common
 
+- name: shut off transmission for config editting
+  ansible.builtin.service:
+    name: transmission-daemon
+    state: stopped
+
+- name: make download folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: debian-transmission
+    group: media
+    mode: "0775"
+  loop:
+    - "/opt/plex/transmission"
+    - "/opt/plex/transmission/movies"
+    - "/opt/plex/transmission/shows"
+
 - name: disable rpc-whitelist
   ansible.builtin.lineinfile:
-    path: /var/lib/radarr/config.xml
+    path: /var/lib/transmission-daemon/.config/transmission-daemon/settings.json
     regexp: "^    \"rpc-whitelist-enabled\":.*$"
     line: "    \"rpc-whitelist-enabled\": false,"
+
+- name: broadcast on all ips
+  ansible.builtin.lineinfile:
+    path: /var/lib/transmission-daemon/.config/transmission-daemon/settings.json
+    regexp: "^    \"rpc-bind-address\":.*$"
+    line: "    \"rpc-bind-address\": \"0.0.0.0\","
+
+- name: Modify download-dir
+  ansible.builtin.lineinfile:
+    path: /var/lib/transmission-daemon/.config/transmission-daemon/settings.json
+    regexp: "^    \"download-dir\":.*$"
+    line: "    \"download-dir\": \"/opt/plex/transmission\","
+
+- name: add plex user to media group
+  ansible.builtin.user:
+    name: debian-transmission
+    groups: media
+    append: true
+    state: present
+
+- name: restart transmission
+  ansible.builtin.service:
+    name: transmission-daemon
+    state: restarted
+
+- name: Get service facts
+  ansible.builtin.service_facts:
 
 - name: proxy transmission if nginx is installed
   block:
   - name: Configure NGINX for transmission
     ansible.builtin.copy:
-      src: nginx-transmission.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-transmission.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root
 
-  - name: restart nginx and transmission
+  - name: restart nginx
     ansible.builtin.service:
-      name: "{{ item }}"
+      name: nginx
       state: restarted
-    with_items:
-      - nginx
-      - transmission-daemon
   when: ansible_facts.services['nginx.service'] is defined

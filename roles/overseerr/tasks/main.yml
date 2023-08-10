@@ -4,12 +4,15 @@
     name: overseerr
     state: present
 
+- name: Get service facts
+  ansible.builtin.service_facts:
+
 - name: proxy overseerr if nginx is installed
   block:
   - name: Configure NGINX for overseerr
     ansible.builtin.copy:
-      src: nginx-overseerr.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-overseerr.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root

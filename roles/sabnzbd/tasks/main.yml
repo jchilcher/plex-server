@@ -37,12 +37,15 @@
   notify:
   - Restart sabnzbdplus
 
+- name: Get service facts
+  ansible.builtin.service_facts:
+
 - name: proxy sabnzbd if nginx is installed
   block:
   - name: Configure NGINX for sabnzbd
     ansible.builtin.copy:
-      src: nginx-sabnzbd.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-sabnzbd.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root

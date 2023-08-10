@@ -10,3 +10,16 @@
     path: /etc/nginx/sites-enabled/default
     state: absent
   become: true
+
+- name: create /etc/nginx/proxies folder
+  ansible.builtin.file:
+    path: /etc/nginx/proxies
+    state: directory
+  become: true
+
+- name: copy nginx-proxy.conf to /etc/nginx/conf.d/
+  ansible.builtin.copy:
+    src: nginx-proxy.conf
+    dest: /etc/nginx/conf.d/
+    mode: "644"
+  become: true

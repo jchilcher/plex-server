@@ -8,12 +8,15 @@
 - name: Run installarr.sh with responses
   ansible.builtin.shell: "printf '3\nradarr\nmedia\n1\nY' | bash installarr.sh"
 
+- name: Get service facts
+  ansible.builtin.service_facts:
+
 - name: proxy radarr if nginx is installed
   block:
   - name: Configure NGINX for Radarr
     ansible.builtin.copy:
-      src: nginx-radarr.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-radarr.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root

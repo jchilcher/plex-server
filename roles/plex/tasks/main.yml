@@ -18,21 +18,25 @@
 
 - name: create library folders in /opt/plex
   ansible.builtin.file:
-    path: "item"
+    path: "{{ item }}"
     state: directory
     owner: plex
     group: media
+    mode: "0775"
   loop:
     - "/opt/plex/"
     - "/opt/plex/shows"
     - "/opt/plex/movies"
 
+- name: Get service facts
+  ansible.builtin.service_facts:
+
 - name: proxy plex if nginx is installed
   block:
   - name: Configure NGINX for plex
     ansible.builtin.copy:
-      src: nginx-plex.conf
-      dest: /etc/nginx/conf.d/
+      src: proxy-plex.conf
+      dest: /etc/nginx/proxies/
       mode: "0644"
       owner: root
       group: root
