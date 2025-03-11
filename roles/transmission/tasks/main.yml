@@ -50,6 +50,12 @@
     append: true
     state: present
 
+- name: Set type in systemd service file from notify to simple
+  ansible.builtin.replace:
+    path:  /etc/systemd/system/transmission-daemon.service
+    regexp: '^Type=notify'
+    replace: 'Type=simple'
+
 - name: restart transmission
   ansible.builtin.service:
     name: transmission-daemon

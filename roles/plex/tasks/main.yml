@@ -9,6 +9,11 @@
     apt update
     apt install plexmediaserver
 
+- name: Ensure group "media" exists
+  ansible.builtin.group:
+    name: media
+    state: present
+
 - name: add plex user to media group
   ansible.builtin.user:
     name: plex

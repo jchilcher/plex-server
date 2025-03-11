@@ -6,7 +6,7 @@
     mode: '0744'
 
 - name: Run installarr.sh with responses
-  ansible.builtin.shell: "printf '3\nradarr\nmedia\n1\nY' | bash installarr.sh"
+  ansible.builtin.shell: "printf '3\nradarr\nmedia\n1\nY' | bash /root/installarr.sh"
 
 - name: Get service facts
   ansible.builtin.service_facts:

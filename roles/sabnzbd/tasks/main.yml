@@ -24,7 +24,7 @@
       owner: root
       group: root
   notify:
-  - Restart sabnzbdplus
+  - "sabnzbd : Restart sabnzbdplus"
 
 - name: broadcast sabnzbdplus on all ips
   ansible.builtin.lineinfile:
@@ -35,7 +35,7 @@
     owner: plex
     group: plex
   notify:
-  - Restart sabnzbdplus
+  - "sabnzbd : Restart sabnzbdplus"
 
 - name: Get service facts
   ansible.builtin.service_facts:
